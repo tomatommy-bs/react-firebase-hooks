@@ -1,0 +1,38 @@
+import {
+    ActionCodeSettings,
+    Auth,
+    AuthError,
+    confirmPasswordReset as fbConfirmPasswordReset,
+  } from 'firebase/auth';
+  import { useCallback, useState } from 'react';
+  
+  export type ConfirmPasswordResetHook = [
+    (email: string, newPassword: string) => Promise<boolean>,
+    boolean,
+    AuthError | Error | undefined
+  ];
+  
+  export default (auth: Auth): ConfirmPasswordResetHook => {
+    const [error, setError] = useState<AuthError>();
+    const [loading, setLoading] = useState<boolean>(false);
+  
+    const confirmPasswordReset = useCallback(
+      async (oobCode: string, newPassword:string) => {
+        setLoading(true);
+        setError(undefined);
+        try {
+          await fbConfirmPasswordReset(auth, oobCode, newPassword);
+          return true;
+        } catch (err) {
+          setError(err as AuthError);
+          return false;
+        } finally {
+          setLoading(false);
+        }
+      },
+      [auth]
+    );
+  
+    return [confirmPasswordReset, loading, error];
+  };
+  
